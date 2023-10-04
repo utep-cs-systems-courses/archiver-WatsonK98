@@ -1,52 +1,34 @@
 #! /user/bin/python3
 
-import os
-import sys
+#! usr/bin/env python3
 
-def create_archive(files):
-    for file in files:
-        try:
-            file_to_read = os.open(file, 'r')
-            static_data = os.fstat(file_to_read)
-            meta_data = encode_metadata(static_data)
-            sys.stdout.write(meta_data)
+import os, sys      
 
-            while static_data > 0:
-                chunk = os.read(file_to_read, chunk_size)
-                if not chunk:
-                    break
-                sys.stdout.write(chunk)
-            
-            os.close(file_to_read)
+if len(sys.argv) < 3:
+    print("Appropriate command is mytar <command> <filename> <command line arg> <filename>")
+    exit()
+command = sys.argv[1]
 
-        except Exception as e:
-            #Handle whatever exception errors arise (change as exceptions are found)
-            sys.stderr.write(f"Error while processing {file}: {str(e)}")
+if command == 'c':
+    for arg in sys.argv:
+        if arg != 'c' and arg != './mytar.py':
+            data = b''
+            inputFile = os.open(arg, os.O_RDONLY)
+            read = os.read(inputFile, 100)
+            while read != b'':
+                data = data+read
+                read = os.read(inputFile, 100)
+            byte = str(len(arg))+':'+arg+str(len(data))+':'
+            byte = byte.encode()
+            byte = byte + data
+            os.write(1, byte)
+            os.close(inputFile)
 
-def extract_archive():
-    while True:
-        try:
-            meta_data = sys.stdin.read(meta_data_size)
-            if not meta_data:
-                break
-                
-            static_data = decode_metadata(meta_data)
-
-            file_to_read = os.open(static_data.filename, os.O_CREAT | os.O_WRONLY | os.O_TRUNC)
-
-            while static_data.size > 0:
-                chunk_size = min(static_data.size, chunk_size)
-                chunk = sys.stdin.read(chunk_size)
-                os.write(file_to_read, chunk)
-                static_data.size -= len(chunk)
-
-            os.close(file_to_read)
-
-        except Exception as e:
-            sys.stderr.write(f"Error while processing {file}: {str(e)}")
-
-def encode_metadata(static_data):
-    pass
-
-def decode_metadata(meta_data):
-    pass
+if command == 'x':
+    inputFile = os.open(sys.argv[2], os.O_RDONLY)
+    data = ''
+    read = os.read(inputFile, 100).decode()
+    while read != '':
+        data = data+read
+        read = os.read(inputFile, 100).decode()
+    lines = data.split('\n')
