@@ -26,7 +26,7 @@ def create_archive(files):
 def extract_archive():
     while True:
         try:
-            meta_data = sys.stdin.read(meta_data_size)
+            meta_data = sys.stdin.read(meta_data.__sizeof__)
             if not meta_data:
                 break
                 
@@ -50,3 +50,9 @@ def encode_metadata(static_data):
 
 def decode_metadata(meta_data):
     pass
+
+def main(self):
+    if(sys.argv.__len__<3):
+        print(f"Error in formatting")
+        exit(0)
+    
