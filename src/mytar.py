@@ -1,7 +1,6 @@
-#! /user/bin/python3
+#! usr/bin/env python3
 
-import os
-import sys
+import os, sys      
 
 def create_archive(file_descriptor):
     data = sys.argv[2,-2,:]
