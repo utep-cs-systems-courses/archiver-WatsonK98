@@ -45,6 +45,28 @@ class BufferedFdWriter:
         self.flush()
         os.close(self.fd)
 
+def framer(filename, content):
+    name_bytes = filename.encode('utf-8')  # Convert filename to bytes.
+    name_length = len(name_bytes)
+    content_length = len(content)
+    
+    # Use 4 bytes for name length and 8 bytes for content length.
+    name_length_bytes = name_length.to_bytes(4, 'big')  # Filename length: 4 bytes
+    content_length_bytes = content_length.to_bytes(8, 'big')  # Content length: 8 bytes
+
+    # Delimiter to separate fields.
+    delimiter = b'\x00\x00\x00\x00'
+    
+    # Return the combined byte stream: [name_length | name | delimiter | content_length | content]
+    return name_length_bytes + name_bytes + delimiter + content_length_bytes + content
+
+def deframer(buffer):
+    filename_length = int.from_bytes(buffer[:2], 'big')
+    filename = buffer[2:2+filename_length].decode()
+    content_length = int.from_bytes(buffer[2+filename_length:10+filename_length], 'big')
+    content = buffer[10+filename_length:10+filename_length+content_length]
+    return filename, content
+
 def createArchive(file):
     pass
 
