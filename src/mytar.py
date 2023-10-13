@@ -67,11 +67,26 @@ def deframer(buffer):
     content = buffer[10+filename_length:10+filename_length+content_length]
     return filename, content
 
-def createArchive(file):
-    pass
+def createArchive(output_filename, input_filenames):
+    with open(output_filename, 'wb') as archive_file:
+        buffered_writer = BufferedFdWriter(archive_file.fileno())
+        for input_filename in input_filenames:
+            with open(input_filename, 'rb') as input_file:
+                content = input_file.read()
+                framed_data = framer(input_filename, content)
+                buffered_writer.writeBytes(framed_data)
+        buffered_writer.close()
 
-def extractArchive(fiel):
-    pass
+def extractArchive(archive_filename):
+    with open(archive_filename, 'rb') as archive_file:
+        buffered_reader = BufferedFdReader(archive_file.fileno())
+        while True:
+            framed_data = buffered_reader.readByte()
+            if framed_data is None:
+                break
+            filename, content = deframer(framed_data)
+            with open(filename, 'wb') as output_file:
+                output_file.write(content)
 
 command = sys.argv[1]
 
