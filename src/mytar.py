@@ -75,7 +75,7 @@ def createArchive(output_filename, input_filenames):
                 content = input_file.read()
                 framed_data = framer(input_filename, content)
                 buffered_writer.writeBytes(framed_data)
-        buffered_writer.close()
+        buffered_writer.flush()
 
 def extractArchive(archive_filename):
     with open(archive_filename, 'rb') as archive_file:
