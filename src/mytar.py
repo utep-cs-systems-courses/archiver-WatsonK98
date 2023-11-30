@@ -4,11 +4,13 @@ import os
 import sys 
 
 class BufferedFdReader:
+
     def __init__(self, fd, bufLen = 1024*16):
         self.fd = fd
         self.buf = b""
         self.index = 0
         self.bufLen = bufLen
+
     def readByte(self):
         if self.index >= len(self.buf):
             self.buf = os.read(self.fd, self.bufLen)
@@ -19,28 +21,33 @@ class BufferedFdReader:
             retval = self.buf[self.index]
             self.index += 1
             return retval
+        
     def close(self):
         os.close(self.fd)
 
 class BufferedFdWriter:
+
     def __init__(self, fd, bufLen = 1024*16):
         self.fd = fd
         self.buf = bytearray(bufLen)
         self.index = 0
+
     def writeByte(self, bVal):
         self.buf[self.index] = bVal
         self.index += 1
         if self.index >= len(self.buf):
             self.flush()
+
     def flush(self):
         startIndex, endIndex = 0, self.index
         while startIndex < endIndex:
             nWritten = os.write(self.fd, self.buf[startIndex:endIndex])
             if nWritten == 0:
-                os.write(2,f"buf.BufferedFdWriter(fd={self.fd}): flush failed\n".encode())
+                os.write(2, f"buf.BufferedFdWriter(fd={self.fd}): flush failed\n".encode())
                 sys.exit(1)
             startIndex += nWritten
         self.index = 0
+
     def close(self):
         self.flush()
         os.close(self.fd)
@@ -74,7 +81,7 @@ def createArchive(output_filename, input_filenames):
             with open(input_filename, 'rb') as input_file:
                 content = input_file.read()
                 framed_data = framer(input_filename, content)
-                buffered_writer.writeBytes(framed_data)
+                buffered_writer.writeByte(framed_data)
         buffered_writer.flush()
 
 def extractArchive(archive_filename):
@@ -91,9 +98,15 @@ def extractArchive(archive_filename):
 command = sys.argv[1]
 
 if command == "c":
-    file = sys.argv[2:]
-    createArchive(file)
+    output_file = sys.argv[2]
+    input_files = sys.argv[3:]
+    createArchive(output_file, input_files)
 elif command == "x":
-    file = sys.argv[2]
-    extractArchive(file)
+    archive_file = sys.argv[2]
+    extractArchive(archive_file)
 
+if len(sys.argv) > 4 and sys.argv[3] == ">":
+    output_file = sys.argv[4]
+    with open(output_file, 'w') as redirected_output:
+        sys.stdout = redirected_output
+        extractArchive(sys.argv[2])
